@@ -51,6 +51,13 @@ static const TypeInfo *poollab_type_info(uint8_t code) {
 //  resolution / notify registration may need adjustment during bench bring-up.
 // ============================================================================
 
+void PoolLab::setup() {
+  // Stay idle until a read is triggered. Otherwise the ble_client scans
+  // continuously for its MAC, needlessly contending with WiFi for the shared
+  // 2.4 GHz radio (and spinning forever if the device is out of range).
+  this->parent()->set_enabled(false);
+}
+
 void PoolLab::dump_config() {
   ESP_LOGCONFIG(TAG, "PoolLab 1.0 BLE photometer");
   ESP_LOGCONFIG(TAG, "  reset_after_read: %s", YESNO(this->reset_after_read_));

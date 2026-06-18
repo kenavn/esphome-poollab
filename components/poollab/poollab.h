@@ -68,7 +68,7 @@ class PoolLab : public ble_client::BLEClientNode,
 #endif
 {
  public:
-  void setup() override {}
+  void setup() override;
   void loop() override;
   void dump_config() override;
   float get_setup_priority() const override { return setup_priority::AFTER_BLUETOOTH; }
