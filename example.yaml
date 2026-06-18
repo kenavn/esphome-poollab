@@ -1,0 +1,60 @@
+# Example: read a PoolLab 1.0 on demand and push measurements to Home Assistant.
+# For the PoolX board, fold this into poolx.yaml (it already has esp32 + api + time).
+
+esphome:
+  name: poollab-example
+
+esp32:
+  variant: esp32s3
+  framework:
+    type: esp-idf
+
+logger:
+api:
+  homeassistant_services: true   # required: lets the component fire HA events
+ota:
+  - platform: esphome
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+time:
+  - platform: sntp   # provides the "read_at" timestamp
+    id: sntp_time
+
+external_components:
+  - source: github://kenavn/esphome-poollab@main
+  # dev: source: { type: local, path: components }
+
+esp32_ble_tracker:
+ble_client:
+  - mac_address: 60:44:7A:XX:XX:XX     # <-- your PoolLab's MAC
+    id: poollab_ble
+
+poollab:
+  id: pl
+  ble_client_id: poollab_ble
+  reset_after_read: false              # true => erase device memory after a clean read
+  result_count:
+    name: "PoolLab Stored Results"
+  battery_level:
+    name: "PoolLab Battery"
+  parameters:                          # measure_type codes — see PROTOCOL.md table
+    - type: 9                          # pH
+      name: "Pool pH"
+      accuracy_decimals: 2
+    - type: 8                          # Free Chlorine
+      name: "Pool Free Chlorine"
+      unit_of_measurement: "ppm"
+      accuracy_decimals: 2
+
+# Trigger from Home Assistant:
+button:
+  - platform: template
+    name: "Read PoolLab"
+    on_press:
+      - poollab.read: pl
+
+# Trigger from a Nextion touch event (example):
+#   on ... touch:
+#     - poollab.read: pl
